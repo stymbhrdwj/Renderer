@@ -68,7 +68,7 @@ int main() {
     vector<vector<float>> vertices;
     vector<vector<int>> faces;
 
-    string mesh_name = "chinese_dragon";
+    string mesh_name = "bunny";
     string mesh_path = "meshes/" + mesh_name + ".ply";
 
     FILE *fp = fopen(mesh_path.c_str(), "r");
@@ -105,7 +105,7 @@ int main() {
 
     fclose(fp);
 
-    int r_c = 8, phi_c = 0, theta_c = 90, f = 200;
+    float r_c = 0.1, phi_c = 0, theta_c = 90, f = 20;
     
     float c_0 = r_c * sin(theta_c * PI / 180) * cos(phi_c * PI / 180);
     float c_1 = r_c * sin(theta_c * PI / 180) * sin(phi_c * PI / 180);
@@ -119,7 +119,7 @@ int main() {
         {1, 0, 0}
     };
 
-    int res_x = 2048, res_y = 2048;
+    int res_x = 1024, res_y = 1024;
 
     float sensor_x = 32, sensor_y = sensor_x * static_cast<float>(res_y) / res_x;
     int m_x = res_x / sensor_x, m_y = res_y / sensor_y;
@@ -141,7 +141,7 @@ int main() {
         int i = m_y * (f * static_cast<float>(x_c[1]) / static_cast<float>(x_c[2]) + static_cast<float>(sensor_y) / 2);
         // cout << i << " " << j << endl;
         if (i >= 0 && i < res_y && j >= 0 && j < res_x) {
-            img(i, j) += 2 * pow(1 - vecnorm(x_c) / max_dist, 0.1);
+            img(i, j) += pow(1 - vecnorm(x_c) / max_dist, 0.1);
         }
     }
 
