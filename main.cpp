@@ -51,6 +51,15 @@ vector<T> vecsub(vector<T> A, vector<T> B) {
     return C;
 }
 
+template <typename T>
+double vecnorm(vector<T> A) {
+    double norm = 0;
+    for (auto a: A) {
+        norm += a * a;
+    }
+    return sqrt(norm);
+}
+
 int main() {
     srand(42);
 
@@ -110,13 +119,21 @@ int main() {
         {1, 0, 0}
     };
 
-    int sensor_x = 32, sensor_y = 32;
-    int res_x = 1024, res_y = 1024;
+    int res_x = 2048, res_y = 2048;
 
+    float sensor_x = 32, sensor_y = sensor_x * static_cast<float>(res_y) / res_x;
     int m_x = res_x / sensor_x, m_y = res_y / sensor_y;
 
     cimg_library::CImg<float> img(res_y, res_x);
     
+    double max_dist = -1;
+
+    for (auto v: vertices) {
+        vector<float> x_w = {v[0], v[1], v[2]};
+        vector<float> x_c = matvec(R, vecsub(x_w, c_w));
+        max_dist = max(max_dist, vecnorm(x_c));
+    }
+
     for (auto v: vertices) {
         vector<float> x_w = {v[0], v[1], v[2]};
         vector<float> x_c = matvec(R, vecsub(x_w, c_w));
@@ -124,7 +141,7 @@ int main() {
         int i = m_y * (f * static_cast<float>(x_c[1]) / static_cast<float>(x_c[2]) + static_cast<float>(sensor_y) / 2);
         // cout << i << " " << j << endl;
         if (i >= 0 && i < res_y && j >= 0 && j < res_x) {
-            img(i, j) += 1;
+            img(i, j) += 2 * pow(1 - vecnorm(x_c) / max_dist, 0.1);
         }
     }
 
