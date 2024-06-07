@@ -9,7 +9,7 @@
 using namespace cimg_library;
 using namespace std;
 
-const float PI = 3.14159265359;
+const float deg = 3.14159265359 / 180;
 
 float randf() {
     return (float)rand() / RAND_MAX;
@@ -60,17 +60,35 @@ double vecnorm(vector<T> A) {
     return sqrt(norm);
 }
 
+template <typename T>
+T sq(T x) {
+    return x * x;
+}
+
 int main() {
     srand(42);
 
     // Load geometry
 
+    char *mesh_name = new char[128];
+    float r, phi, theta, f;
+    int res_x, res_y;
+    float sensor_x, sensor_y;
+
     vector<vector<float>> vertices;
     vector<vector<int>> faces;
 
-    string mesh_name = "bunny";
-    string mesh_path = "meshes/" + mesh_name + ".ply";
+    {
+        FILE *fp = fopen("scene2", "r");
+        char line[128];
+        fgets(line, 128, fp);
+        fgets(line, 128, fp);
+        sscanf(line, "%s %f %f %f %f %d %d %f", mesh_name, &r, &phi, &theta, &f, &res_x, &res_y, &sensor_x);
+        fclose(fp);
+    }
+    sensor_y = sensor_x * static_cast<float>(res_y) / res_x;
 
+    string mesh_path = "meshes/" + string(mesh_name) + ".ply";
     FILE *fp = fopen(mesh_path.c_str(), "r");
 
     char line[1024];
@@ -104,35 +122,22 @@ int main() {
     }
 
     fclose(fp);
-
-    float r_c = 0.1, phi_c = 0, theta_c = 90, f = 20;
     
-    float c_0 = r_c * sin(theta_c * PI / 180) * cos(phi_c * PI / 180);
-    float c_1 = r_c * sin(theta_c * PI / 180) * sin(phi_c * PI / 180);
-    float c_2 = r_c * cos(theta_c * PI / 180);
+    float c_0 = r * sin(theta * deg) * cos(phi * deg);
+    float c_1 = r * sin(theta * deg) * sin(phi * deg);
+    float c_2 = r * cos(theta * deg);
 
     vector<float> c_w = {c_0, c_1, c_2};
 
     vector<vector<float>> R = {
-        {0, 1, 0},
-        {0, 0, 1},
-        {1, 0, 0}
+        {-1 * sin(phi * deg), cos(phi * deg), 0},
+        {-1 * cos(theta * deg) * cos(phi * deg), -1 * cos(theta * deg) * sin(phi * deg), sin(theta * deg)},
+        {sin(theta * deg) * cos(phi * deg), sin(theta * deg) * sin(phi * deg), cos(theta * deg)}
     };
 
-    int res_x = 1024, res_y = 1024;
-
-    float sensor_x = 32, sensor_y = sensor_x * static_cast<float>(res_y) / res_x;
     int m_x = res_x / sensor_x, m_y = res_y / sensor_y;
 
     cimg_library::CImg<float> img(res_y, res_x);
-    
-    double max_dist = -1;
-
-    for (auto v: vertices) {
-        vector<float> x_w = {v[0], v[1], v[2]};
-        vector<float> x_c = matvec(R, vecsub(x_w, c_w));
-        max_dist = max(max_dist, vecnorm(x_c));
-    }
 
     for (auto v: vertices) {
         vector<float> x_w = {v[0], v[1], v[2]};
@@ -141,12 +146,12 @@ int main() {
         int i = m_y * (f * static_cast<float>(x_c[1]) / static_cast<float>(x_c[2]) + static_cast<float>(sensor_y) / 2);
         // cout << i << " " << j << endl;
         if (i >= 0 && i < res_y && j >= 0 && j < res_x) {
-            img(i, j) += pow(1 - vecnorm(x_c) / max_dist, 0.1);
+            img(i, j) += 1;
         }
     }
 
     char filename[128];
-    string render_path = "output/" + mesh_name + ".pfm";
+    string render_path = "output/" + string(mesh_name) + ".pfm";
     sprintf(filename, render_path.c_str());
     img.save_pfm(filename);
 

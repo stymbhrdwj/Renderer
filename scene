@@ -1,0 +1,2 @@
+#mesh r phi theta f res_x res_y sensor_x
+bunny 2 60 90 50 1024 1024 36
