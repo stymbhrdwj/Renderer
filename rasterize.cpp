@@ -146,7 +146,7 @@ int main() {
         int i = m_y * (f * static_cast<float>(x_c[1]) / static_cast<float>(x_c[2]) + static_cast<float>(sensor_y) / 2);
         // cout << i << " " << j << endl;
         if (i >= 0 && i < res_y && j >= 0 && j < res_x) {
-            img(i, j) += 1;
+            img(i, j) += 0.1;
         }
     }
 

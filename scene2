@@ -1,2 +1,2 @@
 #mesh r phi theta f res_x res_y sensor_x
-bunny 10.0 0 146 200 1024 1024 36
+homer 0.0 0 0 0 1024 1024 32
